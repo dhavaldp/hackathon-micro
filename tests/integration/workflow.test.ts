@@ -138,3 +138,20 @@ test("departed rides cannot be booked", { skip }, async () => {
   assert.equal(result.status, 409);
   assert.equal(errorCode(result.json), "RIDE_DEPARTED");
 });
+
+test("ride endpoints reject malformed and ambiguous inputs", { skip }, async () => {
+  const [driver] = await users();
+  const duplicate = await call(`${API_PATHS.rides}?origin=one&origin=two`);
+  assert.equal(duplicate.status, 400);
+  assert.equal(errorCode(duplicate.json), "VALIDATION_ERROR");
+  const unknown = await call(`${API_PATHS.rides}?unexpected=value`);
+  assert.equal(unknown.status, 400);
+  assert.equal(errorCode(unknown.json), "VALIDATION_ERROR");
+  const malformed = await fetch(`${base}${API_PATHS.rides}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", [DEMO_USER_HEADER]: driver.id },
+    body: "{",
+  });
+  assert.equal(malformed.status, 400);
+  assert.equal(errorCode(await malformed.json()), "VALIDATION_ERROR");
+});

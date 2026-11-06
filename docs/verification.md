@@ -28,13 +28,23 @@ Modules 1–6 are integrated. The live workflow checks require a migrated and se
 
 ## Running integration checks
 
-```
-npm run db:migrate && npm run db:seed
+Use a separate disposable database, not the local demo database. The test seed includes a departed ride needed by the integration tests. For example, in PowerShell:
+
+```powershell
+$env:DATABASE_URL = "file:C:/absolute/path/to/test.db"
+npx prisma migrate deploy --schema apps\api\prisma\schema.prisma
+npm run db:seed
 npm run dev:api
-INTEGRATION_API_BASE_URL=http://localhost:3000 npx tsx --test tests/integration/*.test.ts
 ```
 
-Without `INTEGRATION_API_BASE_URL` the tests are skipped, so `npm test` is unaffected. The tests create rides labelled "Integration Origin" and "Adapter Origin" and need the seeded demo users. Use a disposable database for test runs.
+In another terminal:
+
+```powershell
+$env:INTEGRATION_API_BASE_URL = "http://localhost:3000"
+npx tsx --test tests/integration/*.test.ts
+```
+
+Without `INTEGRATION_API_BASE_URL` the tests are skipped, so `npm test` is unaffected. The tests create rides labelled "Integration Origin" and "Adapter Origin" and need the test-seeded users and departed ride.
 
 ## Executed checks
 
@@ -42,13 +52,13 @@ See the results table below, updated with each run.
 
 | Command | Result |
 |---|---|
-| `npm test` | PASS, 7 of 7 (contracts and foundation only) |
+| `npm test` | PASS (contracts, foundation, and demo command guards) |
 | `npm run lint` | PASS, no errors |
 | `npm run typecheck` | PASS for existing workspaces; `tests/integration` is not covered by any workspace tsconfig (request to Module 1) |
-| `INTEGRATION_API_BASE_URL=http://localhost:3138 npx tsx --test tests/integration/*.test.ts` | PASS, 6 of 6 against a migrated, seeded SQLite database |
+| `INTEGRATION_API_BASE_URL=http://localhost:3148 npx tsx --test tests/integration/*.test.ts` | PASS, 7 of 7 against a migrated, test-seeded SQLite database |
 | `npx tsx --test apps/api/src/db/persistence.test.ts` | PASS, 10 of 10 against an isolated migrated, seeded SQLite database |
 | `npm run build` | PASS (API and web export) |
 
 ## Platform coverage
 
-Web: mock offer, booking and cancellation and switching to the live API were exercised in a browser using an exported build. Android and iOS: **UNVERIFIED**.
+Web: the database-backed offer, booking, cancellation and user switching flows have been exercised in a browser using an exported build. Android and iOS: **UNVERIFIED**.

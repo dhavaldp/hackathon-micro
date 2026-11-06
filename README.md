@@ -14,21 +14,26 @@ A prototype for Rogers people to offer rides, search for them, and book seats im
 - Node.js 22.13 or newer and npm
 - For native testing: Android Studio emulator or iOS Simulator (macOS with Xcode), or Expo Go on a physical device
 
-## Setup
+## Local persistent demo
 
-```
+The demo API uses a dedicated local SQLite database. It starts with three fictional identities and no rides; create rides and bookings in the app. It is not production-ready and must not contain real personal data.
+
+```powershell
 npm install
-copy apps\api\.env.example apps\api\.env.local
 copy apps\mobile\.env.example apps\mobile\.env
+npm run demo:setup
 ```
 
-Database (Module 2 supplies the Prisma schema and seed; the seed must not overwrite user-created data):
+In separate terminals, start the demo API and web app:
 
+```powershell
+npm run demo:api
+npm run dev:web
 ```
-npm run db:generate
-npm run db:migrate
-npm run db:seed
-```
+
+The example mobile configuration connects to the API at `http://localhost:3000`. Data is stored in the ignored `apps/api/prisma/demo.db` and survives app and API restarts. With API servers stopped, `demo:setup` applies migrations and adds missing fictional users without overwriting existing rides or users. To reset this database to just the fictional users, **stop the demo API first** and run `npm run demo:reset -- --confirm`. This permanently deletes all data in that demo database; it never uses the `DATABASE_URL` from your environment.
+
+The demo commands deliberately select that database and reject `NODE_ENV=production`. The demo API listens only on `127.0.0.1` by default; `DEMO_API_PORT` overrides port 3000, and `DEMO_API_HOST=0.0.0.0` explicitly exposes it to your trusted network. Match the mobile API URL and permitted web origins to your setup. The separate `dev:api`, `db:generate`, `db:migrate`, and `db:seed` commands use your normal API environment instead; for those, copy `apps\api\.env.example` to `apps\api\.env.local` and configure the database explicitly.
 
 ## Running
 
@@ -39,10 +44,7 @@ npm run db:seed
 | `npm run dev:mobile` | Expo dev server (scan QR for a device) |
 | `npm run dev:android` / `npm run dev:ios` | Launch an emulator / simulator |
 
-Check the API with `GET http://localhost:3000/api/health`.
-The app starts with sample data. Choose **Use live API** to use the configured API and its seeded SQLite data; selecting a demo user is not authentication.
-
-For a mock-only demo, run `npm install` and `npm run dev:web` (or `npm run dev:mobile`) and leave **Sample data (local mock)** selected. No API or database is required. Mock data is fictional, held in memory, and resets when the app reloads; it is not a fallback for live API errors.
+Check the API with `GET http://localhost:3000/api/health`. The app uses the configured API and reports connection errors instead of falling back to sample data; selecting a fictional user is not authentication. Mock fixtures remain available for automated tests only.
 
 ## Networking
 
@@ -73,4 +75,5 @@ Offer, search, immediately book, and cancel rides and bookings. Excluded: paymen
 
 - **No real authentication or privacy protection.** The demo-user selector sends `X-Demo-User-Id`; it does not verify anyone. Contact details are fictional and unverified.
 - SQLite supports a single local deployment, not distributed or horizontally scaled servers.
+- The demo has no real authorization, abuse protection, managed backups, operational monitoring, or production deployment configuration. Do not expose it publicly or treat it as production-ready.
 - Do not use real employee data. Production use needs the reviews listed in [docs/future-production.md](docs/future-production.md).

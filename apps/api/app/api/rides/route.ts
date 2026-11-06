@@ -18,6 +18,13 @@ function internalError(error: unknown): Response {
 
 export async function GET(request: Request): Promise<Response> {
   const params = new URL(request.url).searchParams;
+  for (const key of params.keys()) {
+    if (params.getAll(key).length > 1) {
+      return Response.json({
+        error: { code: "VALIDATION_ERROR", message: "Ride filters are invalid.", fieldErrors: { [key]: ["Must be provided only once."] } },
+      }, { status: 400 });
+    }
+  }
   const query = discoveryQuerySchema.safeParse(Object.fromEntries(params));
   if (!query.success) return validationError(query.error);
   try {

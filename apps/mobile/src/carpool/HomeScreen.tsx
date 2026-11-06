@@ -17,8 +17,7 @@ import {
   type DiscoveryQuery,
   type Ride,
 } from "@carpool/contracts";
-import { CarpoolApiError, createLiveCarpoolApi, type CarpoolApi } from "./api";
-import { mockCarpoolApi } from "./mock-api";
+import { CarpoolApiError, createLiveCarpoolApi } from "./api";
 
 type Tab = "rides" | "offer" | "activity";
 type DataState = {
@@ -159,10 +158,16 @@ function RideCard({
   const isDriver = ride.driverId === currentUserId;
   return (
     <View style={styles.card}>
-      <Text accessibilityRole="header" style={styles.cardTitle}>{ride.origin} to {ride.destination}</Text>
-      <Text>{formatDeparture(ride.departureTime)} ({ZONE})</Text>
-      <Text>Driver: {driverName}</Text>
-      <Text>
+      <View style={styles.cardTop}>
+        <Text style={styles.cardEyebrow}>TRIP DETAILS</Text>
+        <Text style={styles.seatBadge}>
+          {ride.status === "CANCELLED" ? "Cancelled" : `${ride.remainingSeats} / ${ride.seatCapacity} seats`}
+        </Text>
+      </View>
+      <Text accessibilityRole="header" style={styles.cardTitle}>{ride.origin} <Text style={styles.routeArrow}>→</Text> {ride.destination}</Text>
+      <Text style={styles.cardDetail}>{formatDeparture(ride.departureTime)} ({ZONE})</Text>
+      <Text style={styles.cardDetail}>Driver: {driverName}</Text>
+      <Text style={styles.secondary}>
         {ride.status === "CANCELLED"
           ? "Cancelled"
           : `${ride.remainingSeats} of ${ride.seatCapacity} seats available`}
@@ -184,9 +189,8 @@ function RideCard({
 }
 
 export default function HomeScreen() {
-  const [mode, setMode] = useState<"mock" | "live">("mock");
-  const client: CarpoolApi = mode === "mock" ? mockCarpoolApi : liveCarpoolApi;
-  const [actorId, setActorId] = useState("demo-rider-2");
+  const client = liveCarpoolApi;
+  const [actorId, setActorId] = useState("");
   const [tab, setTab] = useState<Tab>("rides");
   const [filters, setFilters] = useState<DiscoveryQuery>({});
   const [searchOrigin, setSearchOrigin] = useState("");
@@ -309,30 +313,18 @@ export default function HomeScreen() {
   return (
     <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
       <View style={styles.content}>
-        <Text accessibilityRole="header" style={styles.title}>Rogers carpool</Text>
-        <Text style={styles.disclaimer}>
-          Fictional demo only. Switching users is not authentication; displayed contact details are unverified.
-        </Text>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Data source</Text>
-          <Text accessibilityLiveRegion="polite" role="status" style={styles.sourceLabel}>
-            {mode === "mock" ? "Sample data (local mock)" : "Live API"}
+        <View style={styles.hero}>
+          <Text style={styles.eyebrow}>ROGERS  /  CARPOOL DEMO</Text>
+          <Text accessibilityRole="header" style={styles.title}>Better trips, together.</Text>
+          <Text style={styles.heroText}>Find a ride, share a seat, and make the journey a little easier.</Text>
+          <Text style={styles.disclaimer}>
+            Fictional demo only. Switching users is not authentication; contact details are unverified.
           </Text>
-          <View style={styles.row}>
-            <Button label="Use sample data" selected={mode === "mock"} onPress={() => {
-              setMode("mock");
-              setNotice("");
-            }} />
-            <Button label="Use live API" selected={mode === "live"} onPress={() => {
-              setMode("live");
-              setNotice("");
-            }} />
-          </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Demo user</Text>
+          <Text style={styles.sectionTitle}>Who&apos;s riding?</Text>
+          <Text style={styles.secondary}>Switch between fictional people to try the full journey.</Text>
           <View style={styles.row}>
             {(data?.users ?? []).map((user) => <Button
               key={user.id}
@@ -351,7 +343,7 @@ export default function HomeScreen() {
             : null}
         </View>
 
-        <View style={styles.row} accessibilityRole="tablist">
+        <View style={styles.tabs}>
           {([
             ["rides", "Find rides"],
             ["offer", "Offer a ride"],
@@ -392,9 +384,14 @@ export default function HomeScreen() {
               }} />
             </View>
           </View>
-          <Text accessibilityRole="header" style={styles.sectionTitle}>Upcoming rides</Text>
+          <View style={styles.listHeading}>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>Upcoming rides</Text>
+            <Text style={styles.secondary}>{data.rides.length} upcoming {data.rides.length === 1 ? "trip" : "trips"}</Text>
+          </View>
           {data.rides.length === 0
-            ? <Text style={styles.empty}>No upcoming rides match those filters.</Text>
+            ? <Text style={styles.empty}>{Object.keys(filters).length
+              ? "No upcoming rides match those filters."
+              : "No upcoming rides yet. Be the first to offer a ride."}</Text>
             : data.rides.map((ride) => <RideCard
               key={ride.id}
               ride={ride}
@@ -467,28 +464,37 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  page: { flexGrow: 1, padding: 20, paddingTop: 32, backgroundColor: "#f3f6f8" },
+  page: { flexGrow: 1, padding: 20, paddingTop: 32, paddingBottom: 48, backgroundColor: "#f4f4f1" },
   content: { width: "100%", maxWidth: 840, alignSelf: "center", gap: 16 },
-  title: { color: "#123d63", fontSize: 30, fontWeight: "700" },
-  disclaimer: { color: "#3d4952", fontSize: 15, lineHeight: 22 },
-  section: { backgroundColor: "#ffffff", borderColor: "#d5dee5", borderRadius: 10, borderWidth: 1, gap: 12, padding: 16 },
-  sectionTitle: { color: "#173d5c", fontSize: 20, fontWeight: "700" },
-  sourceLabel: { fontWeight: "600" },
-  secondary: { color: "#4b5c68", lineHeight: 21 },
+  hero: { backgroundColor: "#192d2b", borderRadius: 24, padding: 26, gap: 10 },
+  eyebrow: { color: "#b9e6d3", fontSize: 11, fontWeight: "800", letterSpacing: 1.6 },
+  title: { color: "#ffffff", fontSize: 34, fontWeight: "800", letterSpacing: -1 },
+  heroText: { color: "#e1eee8", fontSize: 16, lineHeight: 24 },
+  disclaimer: { color: "#bfd1c8", fontSize: 12, lineHeight: 18, marginTop: 4 },
+  section: { backgroundColor: "#ffffff", borderColor: "#e2e8e2", borderRadius: 18, borderWidth: 1, gap: 12, padding: 20 },
+  sectionTitle: { color: "#1d332e", fontSize: 20, fontWeight: "700" },
+  secondary: { color: "#586c63", lineHeight: 21 },
   row: { alignItems: "stretch", flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  button: { alignItems: "center", backgroundColor: "#e7eef4", borderColor: "#9db1c1", borderRadius: 7, borderWidth: 1, justifyContent: "center", minHeight: 44, paddingHorizontal: 14, paddingVertical: 9 },
-  selectedButton: { backgroundColor: "#123d63", borderColor: "#123d63" },
+  tabs: { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: 6, backgroundColor: "#e7eee8", borderRadius: 16 },
+  button: { alignItems: "center", backgroundColor: "#f3f7f3", borderColor: "#cbdacf", borderRadius: 12, borderWidth: 1, justifyContent: "center", minHeight: 44, paddingHorizontal: 16, paddingVertical: 9 },
+  selectedButton: { backgroundColor: "#225a43", borderColor: "#225a43" },
   disabledButton: { opacity: 0.5 },
   pressedButton: { opacity: 0.75 },
-  buttonText: { color: "#123d63", fontSize: 15, fontWeight: "600" },
+  buttonText: { color: "#225a43", fontSize: 15, fontWeight: "700" },
   selectedButtonText: { color: "#ffffff" },
   field: { gap: 5 },
-  label: { color: "#263c4c", fontWeight: "600" },
-  input: { backgroundColor: "#ffffff", borderColor: "#9db1c1", borderRadius: 6, borderWidth: 1, fontSize: 16, minHeight: 46, paddingHorizontal: 12, paddingVertical: 9 },
+  label: { color: "#294238", fontWeight: "600" },
+  input: { backgroundColor: "#fbfcfa", borderColor: "#bdcfc2", borderRadius: 10, borderWidth: 1, fontSize: 16, minHeight: 48, paddingHorizontal: 12, paddingVertical: 9 },
   fieldError: { color: "#9d1c1c" },
-  card: { backgroundColor: "#ffffff", borderColor: "#d5dee5", borderRadius: 10, borderWidth: 1, gap: 8, padding: 16 },
-  cardTitle: { color: "#173d5c", fontSize: 18, fontWeight: "700" },
-  empty: { backgroundColor: "#ffffff", borderRadius: 8, color: "#4b5c68", padding: 16 },
+  card: { backgroundColor: "#ffffff", borderColor: "#dce7df", borderRadius: 18, borderWidth: 1, gap: 10, padding: 20 },
+  cardTop: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 },
+  cardEyebrow: { color: "#698274", fontSize: 11, fontWeight: "800", letterSpacing: 1 },
+  seatBadge: { backgroundColor: "#e7f4e9", color: "#225a43", borderRadius: 20, paddingHorizontal: 10, paddingVertical: 5, fontSize: 12, fontWeight: "700", overflow: "hidden" },
+  routeArrow: { color: "#468b66" },
+  cardDetail: { color: "#40574b", lineHeight: 21 },
+  listHeading: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: 8 },
+  cardTitle: { color: "#1d332e", fontSize: 20, fontWeight: "700" },
+  empty: { backgroundColor: "#ffffff", borderRadius: 14, color: "#586c63", padding: 20 },
   loading: { alignItems: "center", flexDirection: "row", gap: 10, paddingVertical: 8 },
   success: { backgroundColor: "#e6f4ea", borderRadius: 7, color: "#175b2b", padding: 12 },
   error: { backgroundColor: "#fdeaea", borderRadius: 7, color: "#8d1b1b", padding: 12 },
