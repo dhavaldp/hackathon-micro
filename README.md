@@ -40,6 +40,9 @@ npm run db:seed
 | `npm run dev:android` / `npm run dev:ios` | Launch an emulator / simulator |
 
 Check the API with `GET http://localhost:3000/api/health`.
+The app starts with sample data. Choose **Use live API** to use the configured API and its seeded SQLite data; selecting a demo user is not authentication.
+
+For a mock-only demo, run `npm install` and `npm run dev:web` (or `npm run dev:mobile`) and leave **Sample data (local mock)** selected. No API or database is required. Mock data is fictional, held in memory, and resets when the app reloads; it is not a fallback for live API errors.
 
 ## Networking
 

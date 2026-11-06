@@ -11,7 +11,7 @@ export async function handleBookingRequest(
   try {
     const actorId = request.headers.get("X-Demo-User-Id")?.trim();
     if (!actorId) {
-      throw new BookingError("INVALID_INPUT", "X-Demo-User-Id is required.", 400);
+      throw new BookingError("DEMO_USER_REQUIRED", "X-Demo-User-Id is required.", 400);
     }
 
     const data = await operation(getBookingService(), actorId);
@@ -21,6 +21,7 @@ export async function handleBookingRequest(
       return jsonResponse({ error: { code: error.code, message: error.message } }, error.status);
     }
 
+    console.error("Booking request failed:", error);
     return jsonResponse(
       { error: { code: "INTERNAL_ERROR", message: "The request could not be completed." } },
       500,

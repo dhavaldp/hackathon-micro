@@ -4,6 +4,7 @@ import {
   API_PATHS, DEMO_USER_HEADER, activitySchema, apiErrorSchema, bookingMutationSchema,
   demoUserSchema, rideCancellationSchema, rideSchema,
 } from "@carpool/contracts";
+import { createLiveCarpoolApi } from "../../apps/mobile/src/carpool/api";
 
 // Runs against a live API with migrated, seeded SQLite:
 //   INTEGRATION_API_BASE_URL=http://localhost:3000 npx tsx --test tests/integration/*.test.ts
@@ -108,10 +109,32 @@ test("validation and demo-user errors", { skip }, async () => {
     method: "POST", actor: driver.id,
     body: { origin: " ", destination: "X", departureTime: inHours(-1), seatCapacity: 99 },
   });
+
   assert.equal(bad.status, 400);
   assert.equal(errorCode(bad.json), "VALIDATION_ERROR");
   const none = await call(API_PATHS.activity);
   assert.equal(errorCode(none.json), "DEMO_USER_REQUIRED");
   const unknown = await call(API_PATHS.activity, { actor: "no-such-user" });
   assert.equal(errorCode(unknown.json), "DEMO_USER_NOT_FOUND");
+});
+
+test("the mobile live adapter completes the ride and booking workflow", { skip }, async () => {
+  const client = createLiveCarpoolApi(base);
+  const [driver, rider] = await client.listUsers();
+  const ride = await client.createRide(driver.id, {
+    origin: "Adapter Origin", destination: "Adapter Destination", departureTime: inHours(72), seatCapacity: 1,
+  });
+  assert.ok((await client.listRides({ origin: "Adapter Origin" })).some((item) => item.id === ride.id));
+  const booked = await client.book(ride.id, rider.id);
+  assert.equal(booked.ride.remainingSeats, 0);
+  assert.ok((await client.getActivity(rider.id)).bookings.some((item) => item.id === booked.booking.id));
+  assert.equal((await client.cancelBooking(booked.booking.id, rider.id)).ride.remainingSeats, 1);
+  assert.equal((await client.cancelRide(ride.id, driver.id)).ride.status, "CANCELLED");
+});
+
+test("departed rides cannot be booked", { skip }, async () => {
+  const [rider] = await users();
+  const result = await call(API_PATHS.book("demo-ride-departed"), { method: "POST", actor: rider.id });
+  assert.equal(result.status, 409);
+  assert.equal(errorCode(result.json), "RIDE_DEPARTED");
 });

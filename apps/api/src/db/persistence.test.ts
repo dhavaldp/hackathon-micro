@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile, spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { isAbsolute } from "node:path";
+import { isAbsolute, join } from "node:path";
 import { after, before, test } from "node:test";
 import { promisify } from "node:util";
 import { PersistenceError } from "@carpool/contracts";
@@ -82,7 +82,7 @@ test("repeated seeding preserves modified and user-created data", async () => {
   const original = await prisma.demoUser.findUniqueOrThrow({ where: { id: "demo-avery" } });
   try {
     await prisma.demoUser.update({ where: { id: original.id }, data: { displayName: "Modified Example" } });
-    await promisify(execFile)("npm", ["run", "db:seed"], { cwd: process.cwd(), env: process.env });
+    await promisify(execFile)(process.execPath, ["--import", "tsx", join("apps", "api", "prisma", "seed.ts")], { cwd: process.cwd(), env: process.env });
     assert.equal((await prisma.demoUser.findUniqueOrThrow({ where: { id: original.id } })).displayName, "Modified Example");
     assert.ok(await prisma.demoUser.findUnique({ where: { id: driver } }));
   } finally {

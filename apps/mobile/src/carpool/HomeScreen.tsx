@@ -32,8 +32,11 @@ const ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || "local time";
 
 function formatDeparture(value: string): string {
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
     timeZoneName: "short",
   }).format(new Date(value));
 }
@@ -206,11 +209,17 @@ export default function HomeScreen() {
     setLoading(true);
     setData(null);
     setError("");
-    Promise.all([
-      client.listUsers(),
-      client.listRides(filters),
-      client.getActivity(actorId),
-    ]).then(([users, rides, activity]) => {
+    client.listUsers().then(async (users) => {
+      if (!current) return;
+      if (!users.some((user) => user.id === actorId)) {
+        if (users.length === 0) throw new Error("No demo users are available.");
+        setActorId(users[0].id);
+        return;
+      }
+      const [rides, activity] = await Promise.all([
+        client.listRides(filters),
+        client.getActivity(actorId),
+      ]);
       if (current) setData({ users, rides, activity });
     }).catch((failure: unknown) => {
       if (current) setError(displayError(failure));

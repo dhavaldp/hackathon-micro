@@ -1,19 +1,8 @@
+import { activity, bookings, demoUsers } from "../../db";
 import { createBookingService } from "./service";
-import { DatabaseContentionError, type BookingRepository } from "./types";
 
-let repository: BookingRepository | undefined;
-
-export function configureBookingRepository(bookingRepository: BookingRepository): void {
-  repository = bookingRepository;
-}
+const service = createBookingService(bookings, demoUsers, activity);
 
 export function getBookingService() {
-  const activeRepository = repository ?? unavailableRepository;
-  return createBookingService(activeRepository);
+  return service;
 }
-
-const unavailableRepository: BookingRepository = {
-  transaction<T>(): Promise<T> {
-    return Promise.reject(new DatabaseContentionError());
-  },
-};
