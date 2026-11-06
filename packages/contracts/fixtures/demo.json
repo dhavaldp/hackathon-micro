@@ -1,0 +1,36 @@
+{
+  "clock": "2030-06-01T12:00:00.000Z",
+  "users": [
+    { "id": "demo-driver", "displayName": "Alex (fictional)", "contactDetails": "alex@example.invalid" },
+    { "id": "demo-rider", "displayName": "Sam (fictional)" },
+    { "id": "demo-rider-2", "displayName": "Taylor (fictional)" }
+  ],
+  "rides": [
+    { "id": "ride-available", "driverId": "demo-driver", "origin": "Toronto", "destination": "Brampton", "departureTime": "2030-06-02T14:00:00.000Z", "seatCapacity": 2, "remainingSeats": 1, "status": "ACTIVE" },
+    { "id": "ride-full", "driverId": "demo-driver", "origin": "Toronto", "destination": "Mississauga", "departureTime": "2030-06-02T15:00:00.000Z", "seatCapacity": 1, "remainingSeats": 0, "status": "ACTIVE" },
+    { "id": "ride-cancelled", "driverId": "demo-driver", "origin": "Brampton", "destination": "Toronto", "departureTime": "2030-06-03T15:00:00.000Z", "seatCapacity": 2, "remainingSeats": 0, "status": "CANCELLED" },
+    { "id": "ride-departed", "driverId": "demo-driver", "origin": "Toronto", "destination": "Brampton", "departureTime": "2030-05-31T15:00:00.000Z", "seatCapacity": 2, "remainingSeats": 2, "status": "ACTIVE" }
+  ],
+  "bookings": [
+    { "id": "booking-active", "rideId": "ride-available", "riderId": "demo-rider", "status": "ACTIVE" },
+    { "id": "booking-full", "rideId": "ride-full", "riderId": "demo-rider-2", "status": "ACTIVE" },
+    { "id": "booking-cancelled", "rideId": "ride-cancelled", "riderId": "demo-rider", "status": "CANCELLED" }
+  ],
+  "emptyRides": { "data": [] },
+  "emptyActivity": { "data": { "offeredRides": [], "bookings": [] } },
+  "errors": [
+    { "error": { "code": "VALIDATION_ERROR", "message": "Check the ride fields.", "fieldErrors": { "origin": ["Origin is required."] } } },
+    { "error": { "code": "DEMO_USER_REQUIRED", "message": "Select a demo user." } },
+    { "error": { "code": "DEMO_USER_NOT_FOUND", "message": "Demo user does not exist." } },
+    { "error": { "code": "NOT_FOUND", "message": "Record not found." } },
+    { "error": { "code": "WRONG_ACTOR", "message": "Select the owner of this record." } },
+    { "error": { "code": "ORIGIN_NOT_ALLOWED", "message": "Browser origin is not allowed." } },
+    { "error": { "code": "SELF_BOOKING", "message": "Drivers cannot book their own rides." } },
+    { "error": { "code": "DUPLICATE_BOOKING", "message": "You already have an active booking." } },
+    { "error": { "code": "RIDE_FULL", "message": "No seats remain." } },
+    { "error": { "code": "RIDE_CANCELLED", "message": "This ride was cancelled." } },
+    { "error": { "code": "RIDE_DEPARTED", "message": "This ride has departed." } },
+    { "error": { "code": "DATABASE_BUSY", "message": "The database is busy. Try again." } },
+    { "error": { "code": "INTERNAL_ERROR", "message": "An unexpected error occurred." } }
+  ]
+}

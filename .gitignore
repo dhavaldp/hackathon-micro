@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+.next/
+next-env.d.ts
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+.DS_Store
+.idea/
