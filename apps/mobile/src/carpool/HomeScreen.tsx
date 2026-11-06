@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -314,7 +315,17 @@ export default function HomeScreen() {
     <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
       <View style={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.eyebrow}>ROGERS  /  CARPOOL DEMO</Text>
+          <View style={styles.brandRow}>
+            <Image
+              // Metro requires a static require for bundled image assets.
+              // eslint-disable-next-line @typescript-eslint/no-require-imports
+              source={require("../../assets/rogers-logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+              accessibilityLabel="Rogers"
+            />
+            <Text style={styles.eyebrow}>CARPOOL DEMO</Text>
+          </View>
           <Text accessibilityRole="header" style={styles.title}>Better trips, together.</Text>
           <Text style={styles.heroText}>Find a ride, share a seat, and make the journey a little easier.</Text>
           <Text style={styles.disclaimer}>
@@ -467,6 +478,8 @@ const styles = StyleSheet.create({
   page: { flexGrow: 1, padding: 20, paddingTop: 32, paddingBottom: 48, backgroundColor: "#f4f4f1" },
   content: { width: "100%", maxWidth: 840, alignSelf: "center", gap: 16 },
   hero: { backgroundColor: "#192d2b", borderRadius: 24, padding: 26, gap: 10 },
+  brandRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 16 },
+  logo: { width: 148, height: 32 },
   eyebrow: { color: "#b9e6d3", fontSize: 11, fontWeight: "800", letterSpacing: 1.6 },
   title: { color: "#ffffff", fontSize: 34, fontWeight: "800", letterSpacing: -1 },
   heroText: { color: "#e1eee8", fontSize: 16, lineHeight: 24 },
