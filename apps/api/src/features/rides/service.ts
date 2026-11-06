@@ -29,7 +29,6 @@ function failure<T>(status: number, error: ApiError): ApiResult<T> {
 
 function normalizeFilter(
   value: string | undefined,
-  field: 'origin' | 'destination',
 ): { value: string | undefined; fieldError?: string } {
   const normalized = value?.trim();
   if (!normalized) return { value: undefined };
@@ -98,8 +97,8 @@ export class RideService {
   }
 
   listRides(filters: RideListFilters = {}): ApiResult<Ride[]> {
-    const origin = normalizeFilter(filters.origin, 'origin');
-    const destination = normalizeFilter(filters.destination, 'destination');
+    const origin = normalizeFilter(filters.origin);
+    const destination = normalizeFilter(filters.destination);
     const fieldErrors: Record<string, string[]> = {};
     if (origin.fieldError) fieldErrors.origin = [origin.fieldError];
     if (destination.fieldError) fieldErrors.destination = [destination.fieldError];

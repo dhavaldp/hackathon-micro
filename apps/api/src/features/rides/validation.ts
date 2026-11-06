@@ -37,7 +37,7 @@ export function parseIsoInstant(value: unknown): string | null {
   const match = dateTimePattern.exec(value);
   if (!match) return null;
 
-  const [, yearText, monthText, dayText, hourText, minuteText, secondText, fractionText, zone, , offsetHourText, offsetMinuteText] = match;
+  const [, yearText, monthText, dayText, hourText, minuteText, secondText, fractionText, , , offsetHourText, offsetMinuteText] = match;
   const year = Number(yearText);
   const month = Number(monthText);
   const day = Number(dayText);
