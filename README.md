@@ -4,7 +4,7 @@
 
 SmartCommute AI is a one-screen, specification-driven hackathon demo that matches Rogers employees into carpools along a driver's commute route, allocates seats, calculates distance-based fares, checks payment compatibility, and promotes queued riders when a seat is freed.
 
-Built with React, TypeScript, Vite, Vitest, GitHub Copilot instructions, reusable Skills, and specialized developer and QA agents. This README is also the step-by-step presentation guide for demonstrating the project and its Copilot workflow.
+Built with React, TypeScript, Vite, Vitest, GitHub Copilot instructions, reusable Skills, and specialized developer and QA agents. For a separate presenter reference covering setup, expected outcomes, and Copilot talking points, see the [demo walkthrough](specs/001-smart-commute-matching/demo-walkthrough.md). The concise timed talk track remains below and in the [demo script](specs/001-smart-commute-matching/demo-script.md).
 
 ## Product Scenario
 
