@@ -19,6 +19,7 @@ import {
   type Ride,
 } from "@carpool/contracts";
 import { CarpoolApiError, createLiveCarpoolApi } from "./api";
+import { contactDraftCopy, type ContactAudience } from "./contact";
 
 type Tab = "rides" | "offer" | "activity";
 type DataState = {
@@ -141,6 +142,26 @@ function Field({
   );
 }
 
+function ContactDraft({ audience }: { audience: ContactAudience }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const copy = contactDraftCopy(audience);
+  return <View style={styles.contact}>
+    <Button label={open ? "Close contact draft" : copy.label} onPress={() => setOpen(!open)} />
+    {open ? <>
+      <Text accessibilityLiveRegion="polite" style={styles.secondary}>{copy.description}</Text>
+      <TextInput
+        accessibilityLabel={`Draft message to ${audience}`}
+        placeholder="Write a draft..."
+        multiline
+        value={draft}
+        onChangeText={setDraft}
+        style={styles.input}
+      />
+    </> : null}
+  </View>;
+}
+
 function RideCard({
   ride,
   driverName,
@@ -185,6 +206,7 @@ function RideCard({
         disabled={busy || ride.status === "CANCELLED"}
         onPress={onCancel}
       /> : null}
+      {onCancel ? <ContactDraft audience="riders" /> : null}
     </View>
   );
 }
@@ -465,6 +487,8 @@ export default function HomeScreen() {
                   return `Booking cancelled. ${result.ride.remainingSeats} seat(s) are now available, as reported by the API.`;
                 })}
               /> : null}
+              {booking.status === "ACTIVE" && booking.ride.status === "ACTIVE"
+                ? <ContactDraft audience="driver" /> : null}
             </View>)}
         </> : null}
 
@@ -496,6 +520,7 @@ const styles = StyleSheet.create({
   buttonText: { color: "#225a43", fontSize: 15, fontWeight: "700" },
   selectedButtonText: { color: "#ffffff" },
   field: { gap: 5 },
+  contact: { gap: 8 },
   label: { color: "#294238", fontWeight: "600" },
   input: { backgroundColor: "#fbfcfa", borderColor: "#bdcfc2", borderRadius: 10, borderWidth: 1, fontSize: 16, minHeight: 48, paddingHorizontal: 12, paddingVertical: 9 },
   fieldError: { color: "#9d1c1c" },

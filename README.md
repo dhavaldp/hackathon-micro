@@ -76,4 +76,5 @@ Offer, search, immediately book, and cancel rides and bookings. Excluded: paymen
 - **No real authentication or privacy protection.** The demo-user selector sends `X-Demo-User-Id`; it does not verify anyone. Contact details are fictional and unverified.
 - SQLite supports a single local deployment, not distributed or horizontally scaled servers.
 - The demo has no real authorization, abuse protection, managed backups, operational monitoring, or production deployment configuration. Do not expose it publicly or treat it as production-ready.
+- Contact controls offer an unsaved draft only; there is no messaging service and nothing is delivered.
 - Do not use real employee data. Production use needs the reviews listed in [docs/future-production.md](docs/future-production.md).
