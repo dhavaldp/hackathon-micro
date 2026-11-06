@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Carpool Prototype",
+    "slug": "carpool-prototype",
+    "scheme": "carpool-demo",
+    "version": "0.1.0",
+    "platforms": ["android", "ios", "web"],
+    "plugins": ["expo-router"],
+    "web": { "bundler": "metro", "output": "single" },
+    "ios": { "supportsTablet": true },
+    "android": { "package": "com.example.carpoolprototype" }
+  }
+}
