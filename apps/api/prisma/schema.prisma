@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model DemoUser {
+  id             String    @id
+  displayName    String
+  contactDetails String?
+  rides          Ride[]
+  bookings       Booking[]
+}
+
+model Ride {
+  id             String    @id @default(cuid())
+  driverId       String
+  driver         DemoUser  @relation(fields: [driverId], references: [id], onDelete: Restrict)
+  origin         String
+  destination    String
+  departureTime  DateTime
+  seatCapacity   Int
+  remainingSeats Int
+  status         String    @default("ACTIVE")
+  bookings       Booking[]
+
+  @@index([status, departureTime, id])
+  @@index([driverId])
+}
+
+model Booking {
+  id      String   @id @default(cuid())
+  rideId  String
+  ride    Ride     @relation(fields: [rideId], references: [id], onDelete: Restrict)
+  riderId String
+  rider   DemoUser @relation(fields: [riderId], references: [id], onDelete: Restrict)
+  status  String   @default("ACTIVE")
+
+  @@index([riderId])
+  @@index([rideId])
+}
