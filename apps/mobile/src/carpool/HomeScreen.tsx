@@ -81,12 +81,14 @@ function Button({
   onPress,
   disabled = false,
   selected = false,
+  fullWidth = false,
   accessibilityLabel,
 }: {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   selected?: boolean;
+  fullWidth?: boolean;
   accessibilityLabel?: string;
 }) {
   return (
@@ -98,6 +100,7 @@ function Button({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
+        fullWidth && styles.fullWidthButton,
         selected && styles.selectedButton,
         disabled && styles.disabledButton,
         pressed && !disabled && styles.pressedButton,
@@ -213,7 +216,9 @@ function RideCard({
 
 export default function HomeScreen() {
   const client = liveCarpoolApi;
-  const [actorId, setActorId] = useState("");
+  const [actorId, setActorId] = useState("demo-blair");
+  const [selectedDemoUserId, setSelectedDemoUserId] = useState("");
+  const [enteredDemo, setEnteredDemo] = useState(false);
   const [tab, setTab] = useState<Tab>("rides");
   const [filters, setFilters] = useState<DiscoveryQuery>({});
   const [searchOrigin, setSearchOrigin] = useState("");
@@ -332,6 +337,7 @@ export default function HomeScreen() {
   }
 
   const selectedUser = data?.users.find((user) => user.id === actorId);
+  const selectedDemoUser = data?.users.find((user) => user.id === selectedDemoUserId);
 
   return (
     <ScrollView contentContainerStyle={styles.page} keyboardShouldPersistTaps="handled">
@@ -347,6 +353,16 @@ export default function HomeScreen() {
               accessibilityLabel="Rogers"
             />
             <Text style={styles.eyebrow}>CARPOOL DEMO</Text>
+            {enteredDemo ? <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Switch demo user"
+              onPress={() => setEnteredDemo(false)}
+              style={styles.changeDemoUser}
+            >
+              <Text style={styles.changeDemoUserText}>
+                Switch user: {selectedUser?.displayName ?? "Choose"}
+              </Text>
+            </Pressable> : null}
           </View>
           <Text accessibilityRole="header" style={styles.title}>Better trips, together.</Text>
           <Text style={styles.heroText}>Find a ride, share a seat, and make the journey a little easier.</Text>
@@ -355,27 +371,56 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Who&apos;s riding?</Text>
-          <Text style={styles.secondary}>Switch between fictional people to try the full journey.</Text>
-          <View style={styles.row}>
-            {(data?.users ?? []).map((user) => <Button
-              key={user.id}
-              label={user.displayName}
-              selected={user.id === actorId}
-              onPress={() => {
-                setActorId(user.id);
-                setNotice("");
-              }}
-            />)}
+        {!enteredDemo ? (
+          <View style={styles.section}>
+            <Text accessibilityRole="header" style={styles.sectionTitle}>Choose a demo user</Text>
+            <Text style={styles.secondary}>Select a fictional profile to explore the carpool demo.</Text>
+            {loading ? <View style={styles.loading}>
+              <ActivityIndicator accessibilityLabel="Loading demo users" />
+              <Text>Loading demo users…</Text>
+            </View> : null}
+            {!loading ? <View style={styles.demoOptions}>
+              {(data?.users ?? []).map((user) => {
+                const isSelected = user.id === selectedDemoUserId;
+                const initials = user.displayName.split(/\s+/).slice(0, 2).map((part) => part[0]).join("");
+                return <Pressable
+                  key={user.id}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Choose ${user.displayName}`}
+                  accessibilityState={{ selected: isSelected }}
+                  onPress={() => setSelectedDemoUserId(user.id)}
+                  style={[styles.demoOption, isSelected && styles.demoOptionSelected]}
+                >
+                  <View style={[styles.demoAvatar, isSelected && styles.demoAvatarSelected]}>
+                    <Text style={[styles.demoAvatarText, isSelected && styles.demoAvatarTextSelected]}>{initials}</Text>
+                  </View>
+                  <View style={styles.demoUserCopy}>
+                    <Text style={styles.demoUserName}>{user.displayName}</Text>
+                    <Text style={styles.secondary}>{user.contactDetails ?? "Fictional demo profile"}</Text>
+                  </View>
+                  <Text style={[styles.demoUserState, isSelected && styles.demoUserStateSelected]}>
+                    {isSelected ? "Selected" : "Choose"}
+                  </Text>
+                </Pressable>;
+              })}
+            </View> : null}
+            {error ? <Text accessibilityLiveRegion="assertive" role="alert" style={styles.error}>{error}</Text> : null}
+            {error
+              ? <Button label="Retry" fullWidth onPress={() => setRefreshVersion((version) => version + 1)} />
+              : <Button
+                label={selectedDemoUser ? `Continue as ${selectedDemoUser.displayName}` : "Choose a demo user"}
+                disabled={loading || !selectedDemoUser}
+                fullWidth
+                onPress={() => {
+                  if (!selectedDemoUser) return;
+                  setActorId(selectedDemoUser.id);
+                  setEnteredDemo(true);
+                }}
+              />}
+            <Text style={styles.disclaimer}>Demo profiles only. No account or password is used.</Text>
           </View>
-          {selectedUser?.contactDetails
-            ? <Text style={styles.secondary}>
-              Fictional, unverified contact: {selectedUser.contactDetails}
-            </Text>
-            : null}
-        </View>
-
+        ) : (
+          <>
         <View style={styles.tabs}>
           {([
             ["rides", "Find rides"],
@@ -493,6 +538,8 @@ export default function HomeScreen() {
         </> : null}
 
         {!loading && error ? <Button label="Retry" onPress={() => setRefreshVersion((version) => version + 1)} /> : null}
+          </>
+        )}
       </View>
     </ScrollView>
   );
@@ -503,6 +550,8 @@ const styles = StyleSheet.create({
   content: { width: "100%", maxWidth: 840, alignSelf: "center", gap: 16 },
   hero: { backgroundColor: "#192d2b", borderRadius: 24, padding: 26, gap: 10 },
   brandRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 16 },
+  changeDemoUser: { justifyContent: "center", marginLeft: "auto", minHeight: 36, paddingHorizontal: 8 },
+  changeDemoUserText: { color: "#b9e6d3", fontSize: 12, fontWeight: "700" },
   logo: { width: 148, height: 32 },
   eyebrow: { color: "#b9e6d3", fontSize: 11, fontWeight: "800", letterSpacing: 1.6 },
   title: { color: "#ffffff", fontSize: 34, fontWeight: "800", letterSpacing: -1 },
@@ -514,6 +563,7 @@ const styles = StyleSheet.create({
   row: { alignItems: "stretch", flexDirection: "row", flexWrap: "wrap", gap: 8 },
   tabs: { flexDirection: "row", flexWrap: "wrap", gap: 8, padding: 6, backgroundColor: "#e7eee8", borderRadius: 16 },
   button: { alignItems: "center", backgroundColor: "#f3f7f3", borderColor: "#cbdacf", borderRadius: 12, borderWidth: 1, justifyContent: "center", minHeight: 44, paddingHorizontal: 16, paddingVertical: 9 },
+  fullWidthButton: { alignSelf: "stretch" },
   selectedButton: { backgroundColor: "#225a43", borderColor: "#225a43" },
   disabledButton: { opacity: 0.5 },
   pressedButton: { opacity: 0.75 },
@@ -521,6 +571,17 @@ const styles = StyleSheet.create({
   selectedButtonText: { color: "#ffffff" },
   field: { gap: 5 },
   contact: { gap: 8 },
+  demoOptions: { gap: 8 },
+  demoOption: { alignItems: "center", backgroundColor: "#fbfcfa", borderColor: "#dce7df", borderRadius: 10, borderWidth: 1, flexDirection: "row", gap: 12, minHeight: 72, padding: 12 },
+  demoOptionSelected: { backgroundColor: "#edf5ef", borderColor: "#225a43", borderWidth: 2, padding: 11 },
+  demoAvatar: { alignItems: "center", backgroundColor: "#e7eee8", borderRadius: 10, height: 44, justifyContent: "center", width: 44 },
+  demoAvatarSelected: { backgroundColor: "#225a43" },
+  demoAvatarText: { color: "#225a43", fontSize: 14, fontWeight: "800" },
+  demoAvatarTextSelected: { color: "#ffffff" },
+  demoUserCopy: { flex: 1, gap: 3, minWidth: 0 },
+  demoUserName: { color: "#1d332e", fontSize: 15, fontWeight: "700" },
+  demoUserState: { color: "#586c63", fontSize: 12, fontWeight: "700" },
+  demoUserStateSelected: { color: "#225a43" },
   label: { color: "#294238", fontWeight: "600" },
   input: { backgroundColor: "#fbfcfa", borderColor: "#bdcfc2", borderRadius: 10, borderWidth: 1, fontSize: 16, minHeight: 48, paddingHorizontal: 12, paddingVertical: 9 },
   fieldError: { color: "#9d1c1c" },
