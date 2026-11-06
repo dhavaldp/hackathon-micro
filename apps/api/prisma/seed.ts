@@ -6,9 +6,9 @@ async function seed() {
     for (const user of [
       { id: "demo-avery", displayName: "Avery Example", contactDetails: "avery@example.invalid" },
       { id: "demo-blair", displayName: "Blair Example", contactDetails: "blair@example.invalid" },
-      { id: "demo-casey", displayName: "Casey Example" },
+      { id: "demo-casey", displayName: "Casey Example", contactDetails: "casey@example.invalid" },
     ]) {
-      await db.demoUser.upsert({ where: { id: user.id }, create: user, update: {} });
+      await db.demoUser.upsert({ where: { id: user.id }, create: user, update: { contactDetails: user.contactDetails } });
     }
 
     const sampleRides = [
